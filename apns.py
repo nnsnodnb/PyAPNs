@@ -196,7 +196,7 @@ class APNsConnection(object):
         _logger.debug("%s APNS connection establishing..." % self.__class__.__name__)
 
         # Fallback for socket timeout.
-        for i in range(3):
+        for i in range(0, 3):
             try:
                 self._socket = socket(AF_INET, SOCK_STREAM)
                 self._socket.settimeout(self.timeout)
@@ -226,7 +226,7 @@ class APNsConnection(object):
 
         else:
             # Fallback for 'SSLError: _ssl.c:489: The handshake operation timed out'
-            for i in range(3):
+            for i in range(0, 3):
                 try:
                     self._ssl = wrap_socket(self._socket, self.key_file, self.cert_file)
                     break
@@ -364,36 +364,36 @@ class Frame(object):
     def add_item(self, token_hex, payload, identifier, expiry, priority):
         """Add a notification message to the frame"""
         item_len = 0
-        self.frame_data.extend('\2' + APNs.packed_uint_big_endian(item_len))
+        self.frame_data.extend(b'\2' + APNs.packed_uint_big_endian(item_len))
 
         token_bin = a2b_hex(token_hex)
         token_length_bin = APNs.packed_ushort_big_endian(len(token_bin))
-        token_item = '\1' + token_length_bin + token_bin
+        token_item = b'\1' + token_length_bin + token_bin
         self.frame_data.extend(token_item)
         item_len += len(token_item)
 
         payload_json = payload.json()
         payload_length_bin = APNs.packed_ushort_big_endian(len(payload_json))
-        payload_item = '\2' + payload_length_bin + payload_json
+        payload_item = b'\2' + payload_length_bin + payload_json
         self.frame_data.extend(payload_item)
         item_len += len(payload_item)
 
         identifier_bin = APNs.packed_uint_big_endian(identifier)
         identifier_length_bin = \
                 APNs.packed_ushort_big_endian(len(identifier_bin))
-        identifier_item = '\3' + identifier_length_bin + identifier_bin
+        identifier_item = b'\3' + identifier_length_bin + identifier_bin
         self.frame_data.extend(identifier_item)
         item_len += len(identifier_item)
 
         expiry_bin = APNs.packed_uint_big_endian(expiry)
         expiry_length_bin = APNs.packed_ushort_big_endian(len(expiry_bin))
-        expiry_item = '\4' + expiry_length_bin + expiry_bin
+        expiry_item = b'\4' + expiry_length_bin + expiry_bin
         self.frame_data.extend(expiry_item)
         item_len += len(expiry_item)
 
         priority_bin = APNs.packed_uchar(priority)
         priority_length_bin = APNs.packed_ushort_big_endian(len(priority_bin))
-        priority_item = '\5' + priority_length_bin + priority_bin
+        priority_item = b'\5' + priority_length_bin + priority_bin
         self.frame_data.extend(priority_item)
         item_len += len(priority_item)
 
@@ -433,7 +433,7 @@ class FeedbackConnection(APNsConnection):
         A generator that yields (token_hex, fail_time) pairs retrieved from
         the APNs feedback server
         """
-        buff = ''
+        buff = b''
         for chunk in self._chunks():
             buff += chunk
 
@@ -527,7 +527,7 @@ class GatewayConnection(APNsConnection):
             message = self._get_enhanced_notification(token_hex, payload,
                                                            identifier, expiry)
             
-            for i in range(WRITE_RETRY):
+            for i in range(0, WRITE_RETRY):
                 try:
                     with self._send_lock:
                         self._make_sure_error_response_handler_worker_alive()
@@ -549,7 +549,7 @@ class GatewayConnection(APNsConnection):
             or not self._error_response_handler_worker.is_alive()):
             self._init_error_response_handler_worker()
             TIMEOUT_SEC = 10
-            for _ in range(TIMEOUT_SEC):
+            for _ in range(0, TIMEOUT_SEC):
                 if self._error_response_handler_worker.is_alive():
                     _logger.debug("error response handler worker is running")
                     return
@@ -627,7 +627,7 @@ class GatewayConnection(APNsConnection):
         def _resend_notifications_by_id(self, failed_identifier):
             fail_idx = Util.getListIndexFromID(self._apns_connection._sent_notifications, failed_identifier)
             #pop-out success notifications till failed one
-            self._resend_notification_by_range(fail_idx+1, len(self._apns_connection._sent_notifications))
+            self._resend_notification_by_range(0, fail_idx+1, len(self._apns_connection._sent_notifications))
             return
     
         def _resend_notification_by_range(self, start_idx, end_idx):
