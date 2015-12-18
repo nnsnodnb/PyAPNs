@@ -23,7 +23,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from builtins import range
 from binascii import a2b_hex, b2a_hex
 from datetime import datetime
 from socket import socket, timeout, AF_INET, SOCK_STREAM
@@ -47,6 +46,11 @@ try:
     import json
 except ImportError:
     import simplejson as json
+
+try:
+    from __builtin__ import range
+except ImportError:
+    pass
 
 _logger = logging.getLogger(__name__)
 
