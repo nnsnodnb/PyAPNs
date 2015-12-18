@@ -10,5 +10,5 @@ setup(
     py_modules = ['apns_py2py3'],
     scripts = ['apns-send'],
     url = 'http://29.io/',
-    version = '2.0.1',
+    version = '3.0.0',
 )
