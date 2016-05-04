@@ -631,7 +631,7 @@ class GatewayConnection(APNsConnection):
         def _resend_notifications_by_id(self, failed_identifier):
             fail_idx = Util.getListIndexFromID(self._apns_connection._sent_notifications, failed_identifier)
             #pop-out success notifications till failed one
-            self._resend_notification_by_range(0, fail_idx+1, len(self._apns_connection._sent_notifications))
+            self._resend_notification_by_range(fail_idx+1, len(self._apns_connection._sent_notifications))
             return
     
         def _resend_notification_by_range(self, start_idx, end_idx):
